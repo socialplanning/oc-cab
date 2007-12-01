@@ -33,6 +33,6 @@ setup(name='OpencoreTaskTracker',
       [opencore.versions]
       OpencoreTaskTracker = opencore.tasktracker
       [opencore.plugin]
-      configure.zcml = opencore.tasktracker._configure
+      configure.zcml = opencore.tasktracker:_configure
       """,
       )
