@@ -26,7 +26,7 @@ setup(name='oc-cab',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          # -*- Extra requirements: -*-
+          'CabochonClient',
       ],
       entry_points="""
       # -*- Entry points: -*-
