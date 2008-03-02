@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 version = '0.1'
 
-setup(name='OpencoreTaskTracker',
+setup(name='oc-cab',
       version=version,
-      description="tasktracker yay",
+      description="opencore cabochon client package",
       long_description="""\
 """,
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
@@ -16,8 +16,8 @@ setup(name='OpencoreTaskTracker',
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
       keywords='',
-      author='Ethan Jucovy',
-      author_email='ejucovy@openplans.org',
+      author='',
+      author_email='',
       url='',
       license='GPL',
       packages=find_packages(exclude=['ez_setup']),
@@ -31,8 +31,6 @@ setup(name='OpencoreTaskTracker',
       entry_points="""
       # -*- Entry points: -*-
       [opencore.versions]
-      OpencoreTaskTracker = opencore.tasktracker
-      [opencore.plugin]
-      configure.zcml = opencore.tasktracker:_configure
+      oc-cab = opencore.cabochon
       """,
       )
