@@ -19,6 +19,6 @@
      for="Products.remember.interfaces.IReMember zope.app.event.interfaces.IObjectModifiedEvent"
      /-->
 
-  <subscriber handler=".preferences.notify_cabochon" />
+  <subscriber handler=".subscribers.notify_cabochon" />
 
 </configure>
