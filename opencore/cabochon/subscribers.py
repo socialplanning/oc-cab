@@ -3,6 +3,7 @@ from opencore.cabochon.interfaces import ICabochonClient
 from opencore.interfaces import IProject
 from zope.app.container.contained import IObjectRemovedEvent
 from zope.component import adapter
+from zope.component import getUtility
 
 @adapter(IProject, IObjectRemovedEvent)
 def notify_cabochon(project, event=None):
