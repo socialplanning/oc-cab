@@ -4,6 +4,7 @@ from opencore.configuration.setuphandlers import register_local_utility
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.cabochon.client import CabochonConfigError
 from opencore.cabochon.client import CabochonUtility
+import traceback
 
 logger = logging.getLogger('opencore.cabochon.configuration.setuphandlers')
 
