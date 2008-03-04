@@ -6,9 +6,9 @@ from pprint import pprint
 
 test_log = []
 
-def print_test_log():
+def pop_test_log():
     if len(test_log):
-        pprint(test_log.pop())
+        return test_log.pop()
 
 def setup_cabochon_mock(portal):
     # the cabochon utility is a local utility
