@@ -2,8 +2,13 @@ from OFS.SimpleItem import SimpleItem
 from opencore.cabochon.interfaces import ICabochonClient
 from zope.component import queryUtility
 from zope.interface import implements
+from pprint import pprint
 
 test_log = []
+
+def print_test_log():
+    if len(test_log):
+        pprint(test_log.pop())
 
 def setup_cabochon_mock(portal):
     # the cabochon utility is a local utility
