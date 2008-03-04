@@ -7,7 +7,7 @@ from pprint import pprint
 test_log = []
 
 def pop_test_log():
-    if len(test_log):
+    if test_log:
         return test_log.pop()
 
 def setup_cabochon_mock(portal):
