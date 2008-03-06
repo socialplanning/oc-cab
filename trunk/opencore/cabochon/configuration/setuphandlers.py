@@ -8,8 +8,7 @@ import traceback
 
 logger = logging.getLogger('opencore.cabochon.configuration.setuphandlers')
 
-@setuphandler
-def install_cabochon_utility(portal, out):
+def _install_cabochon_utility(portal, out):
     try:
         factory_fn = lambda:CabochonUtility(portal)
         register_local_utility(portal, out,
@@ -19,3 +18,5 @@ def install_cabochon_utility(portal, out):
         logger.info(traceback.print_exc())
     except CabochonConfigError:
         logger.info(traceback.print_exc())
+
+install_cabochon_utility = setuphandler(_install_cabochon_utility)
