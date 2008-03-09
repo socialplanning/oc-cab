@@ -24,6 +24,9 @@ setup(name='oc-cab',
       namespace_packages=['opencore'],
       include_package_data=True,
       zip_safe=False,
+      dependency_links=[
+          'https://svn.openplans.org/svn/CabochonClient/trunk#egg=cabochonclient-dev',
+      ],
       install_requires=[
           'setuptools',
           'CabochonClient',
