@@ -35,5 +35,7 @@ setup(name='oc-cab',
       # -*- Entry points: -*-
       [opencore.versions]
       oc-cab = opencore.cabochon
+      [topp.zcmlloader]
+      opencore = opencore.cabochon
       """,
       )
