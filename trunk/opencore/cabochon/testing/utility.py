@@ -1,8 +1,7 @@
-from OFS.SimpleItem import SimpleItem
 from opencore.cabochon.interfaces import ICabochonClient
 from zope.component import queryUtility
+from zope.component import provideUtility
 from zope.interface import implements
-from pprint import pprint
 
 test_log = []
 
@@ -11,16 +10,11 @@ def pop_test_log():
         return test_log.pop()
 
 def setup_cabochon_mock(portal):
-    # the cabochon utility is a local utility
-    # so we need to remove it first if it already exists
-    if queryUtility(ICabochonClient, context=portal):
-        portal.utilities.manage_delObjects(['ICabochonClient'])
-
-    site_manager = portal.getSiteManager()
-    site_manager.registerUtility(ICabochonClient, StubCabochonClient())
+    if queryUtility(ICabochonClient):
+        provideUtility(StubCabochonClient(), ICabochonClient)
 
 # why not use minimock?
-class StubCabochonClient(SimpleItem):
+class StubCabochonClient(object):
     """stub class used to monkey patch cabochon for unit tests"""
     implements(ICabochonClient)
 

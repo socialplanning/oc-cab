@@ -1,4 +1,3 @@
-from OFS.SimpleItem import SimpleItem
 from cabochonclient import CabochonClient
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.configuration.utils import product_config, get_config
