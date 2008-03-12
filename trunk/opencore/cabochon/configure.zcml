@@ -1,24 +1,14 @@
-<configure xmlns="http://namespaces.zope.org/zope"
-   xmlns:browser="http://namespaces.zope.org/browser"
-   xmlns:five="http://namespaces.zope.org/five">
+<configure xmlns="http://namespaces.zope.org/zope">
 
-  <!-- OK, it looks like no one ever remembered to include the
-       opencore.cabochon package's ZCML even when it lived in
-       opencore, so none of these directives were ever running.
-       to preserve identical behavior during refactoring, i am
-       explicitly commenting these all out for now. ~egj -->
-  <!-- utility factory="opencore.cabochon.client.CabochonClient"
+  <utility
+     factory="opencore.cabochon.client.CabochonUtility"
 	   provides="opencore.cabochon.interfaces.ICabochonClient"
-	   /-->
+	   />
 
-  <!-- subscriber
-     handler=".objectAdded"
-     /-->
-  <!-- subscriber
-     handler=".objectModified"
-     for="Products.remember.interfaces.IReMember zope.app.event.interfaces.IObjectModifiedEvent"
-     /-->
-
-  <subscriber handler=".subscribers.notify_cabochon" />
+  <subscriber
+     handler=".subscribers.notify_project_deleted"
+     for="opencore.interfaces.IProject
+          zope.app.container.contained.IObjectRemovedEvent"
+     />
 
 </configure>
