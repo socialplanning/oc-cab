@@ -1,8 +1,10 @@
 from cabochonclient import CabochonClient
 from opencore.cabochon.interfaces import ICabochonClient
-from opencore.configuration.utils import product_config, get_config
+from opencore.configuration.utils import product_config
+from opencore.utility.interfaces import IProvideSiteConfig
 from threading import Thread
 from zope.interface import implements
+from zope.component import getUtility
 
 class CabochonConfigError(Exception):
     """Error in cabochon configuration"""
@@ -34,12 +36,10 @@ class CabochonUtility(object):
         if not cabochon_messages_dir:
             raise CabochonConfigError('no cabochon_messages directory specified in zope.conf opencore.nui')
 
-        cabochon_uri = get_config('applications', 'cabochon uri', None)
-        if cabochon_uri is None:
-            raise CabochonConfigError('"cabochon uri" not set in build.ini')
+        cabochon_uri = getUtility(IProvideSiteConfig).get('cabochon uri')
         cabochon_uri = cabochon_uri.strip()
         if not cabochon_uri:
-            raise CabochonConfigError('invalid empty cabochon uri')
+            raise CabochonConfigError('invalid empty cabochon uri or cabochon uri not set')
         self.cabochon_uri = cabochon_uri
 
         # initialize cabochon client
