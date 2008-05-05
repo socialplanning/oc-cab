@@ -36,12 +36,7 @@ class CabochonUtility(object):
         if not cabochon_messages_dir:
             raise CabochonConfigError('no cabochon_messages directory specified in zope.conf opencore.nui')
 
-        cabochon_uri = getUtility(IProvideSiteConfig).get('cabochon uri')
-        cabochon_uri = cabochon_uri.strip()
-        if not cabochon_uri:
-            raise CabochonConfigError('invalid empty cabochon uri or cabochon uri not set')
-        self.cabochon_uri = cabochon_uri
-
+        
         # initialize cabochon client
         self.cabochon_client = CabochonClient(cabochon_messages_dir,
                                          cabochon_uri,
@@ -55,6 +50,14 @@ class CabochonUtility(object):
         thread = Thread(target=sender.send_forever)
         thread.setDaemon(True)
         thread.start()
+
+    @property
+    def cabochon_uri(self):
+        cabochon_uri = getUtility(IProvideSiteConfig).get('cabochon uri')
+        cabochon_uri = cabochon_uri.strip()
+        if not cabochon_uri:
+            raise CabochonConfigError('invalid empty cabochon uri or cabochon uri not set')
+        return cabochon_uri
 
     def notify_project_created(self, id, creatorid):
         event_name = 'create_project'
