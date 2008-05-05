@@ -2,7 +2,7 @@ from cabochonclient import CabochonClient
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.configuration.utils import product_config
 from opencore.utility.interfaces import IProvideSiteConfig
-from threading import Thread
+from threading import Thread, Lock
 from zope.interface import implements
 from zope.component import getUtility
 
@@ -36,21 +36,41 @@ class CabochonUtility(object):
         if not cabochon_messages_dir:
             raise CabochonConfigError('no cabochon_messages directory specified in zope.conf opencore.nui')
 
+        # Stash config settings for later.
+        self.cabochon_messages_dir = cabochon_messages_dir
+        self.username = username
+        self.password = password
+        self.lock = Lock()
+
+
+    def _initialize_client(self):
+        # Initialize the cabochon client.
         
-        # initialize cabochon client
-        self.cabochon_client = CabochonClient(cabochon_messages_dir,
-                                         cabochon_uri,
-                                         username,
-                                         password)
+        # We don't want this in __init__, to avoid depending on a
+        # specific zcml load order: we need an IProvideSiteConfig
+        # utility to be set up by now, and if we did this in __init__,
+        # that would have to happen before this package's zcml could
+        # load, because it creates a global CabochonUtility instance.
 
-        # initialize the thread
+        cabochon_client = CabochonClient(self.cabochon_messages_dir,
+                                         self.cabochon_uri,
+                                         self.username,
+                                         self.password)
+        # initialize and start the thread
         sender = self.cabochon_client.sender()
-
-        # and start it
         thread = Thread(target=sender.send_forever)
         thread.setDaemon(True)
         thread.start()
+        return cabochon_client
 
+    @property
+    def cabochon_client(self):
+        self.lock.acquire()
+        if not hasattr(self, '_cabochon_client'):
+            self._cabochon_client = self._initialize_client()
+        self.lock.release()
+        return self._cabochon_client
+            
     @property
     def cabochon_uri(self):
         cabochon_uri = getUtility(IProvideSiteConfig).get('cabochon uri')
