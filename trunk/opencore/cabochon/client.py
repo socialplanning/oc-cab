@@ -66,9 +66,11 @@ class CabochonUtility(object):
     @property
     def cabochon_client(self):
         self.lock.acquire()
-        if not hasattr(self, '_cabochon_client'):
-            self._cabochon_client = self._initialize_client()
-        self.lock.release()
+        try:
+            if not hasattr(self, '_cabochon_client'):
+                self._cabochon_client = self._initialize_client()
+        finally:
+            self.lock.release()
         return self._cabochon_client
             
     @property
