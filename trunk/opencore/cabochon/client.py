@@ -9,6 +9,7 @@ from zope.component import getUtility
 class CabochonConfigError(Exception):
     """Error in cabochon configuration"""
 
+
 class CabochonUtility(object):
     """utility to handle communications with cabochon"""
 
@@ -57,7 +58,7 @@ class CabochonUtility(object):
                                          self.username,
                                          self.password)
         # initialize and start the thread
-        sender = self.cabochon_client.sender()
+        sender = cabochon_client.sender()
         thread = Thread(target=sender.send_forever)
         thread.setDaemon(True)
         thread.start()
