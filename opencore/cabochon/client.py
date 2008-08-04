@@ -1,4 +1,5 @@
-from cabochonclient import CabochonClient
+from cabochonclient import CabochonClient, datetime_to_string
+from datetime import datetime
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.configuration.utils import product_config
 from opencore.utility.interfaces import IProvideSiteConfig
@@ -91,3 +92,38 @@ class CabochonUtility(object):
         event_name = 'delete_project'
         uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
         self.cabochon_client.send_message(dict(id=id), uri)
+
+    def notify_wikipage_created(self, project, page_title, page_url, creatorid):
+        event_name = 'create_page'
+        uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
+        self.cabochon_client.send_message(dict(
+                url = page_url,
+                context = project.absolute_url(),
+                categories=['projects/' + project.id, 'wiki'],
+                title = page_title,
+                event_class = [],
+                user = creatorid,
+                date = datetime_to_string(datetime.now())), uri)
+
+    def notify_wikipage_deleted(self, page_url, actorid):
+        event_name = 'delete_page'
+        uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
+        self.cabochon_client.send_message(dict(
+                url = page_url,
+                user = actorid,
+                date = datetime_to_string(datetime.now())), uri)
+
+    def notify_wikipage_updated(self, project, page_title, page_url, actorid):
+        event_name = 'edit_page'
+        uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
+        self.cabochon_client.send_message(dict(
+                url = page_url,
+                context = project.absolute_url(),
+                categories=['projects/' + project.id, 'wiki'],
+                title = page_title,
+                event_class = [],
+                user = actorid,
+                date = datetime_to_string(datetime.now())), uri)
+
+
+

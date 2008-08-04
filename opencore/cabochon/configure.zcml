@@ -11,4 +11,23 @@
           zope.app.container.contained.IObjectRemovedEvent"
      />
 
+  <subscriber
+     handler=".subscribers.notify_wikipage_created"
+     for="opencore.interfaces.IOpenPage
+          zope.app.container.contained.IObjectAddedEvent"
+     />
+
+  <subscriber
+     handler=".subscribers.notify_wikipage_deleted"
+     for="opencore.interfaces.IOpenPage
+          zope.app.container.contained.IObjectRemovedEvent"
+     />
+
+  <subscriber
+     handler=".subscribers.notify_wikipage_modified"
+     for="opencore.interfaces.IOpenPage
+          zope.app.event.interfaces.IObjectModifiedEvent"
+     />
+
+
 </configure>
