@@ -23,3 +23,6 @@ class StubCabochonClient(object):
 
     notify_project_created = _stub
     notify_project_deleted = _stub
+    notify_wikipage_created = _stub
+    notify_wikipage_updated = _stub
+    notify_wikipage_deleted = _stub
