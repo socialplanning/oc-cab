@@ -101,7 +101,7 @@ class CabochonUtility(object):
                 context = project.absolute_url(),
                 categories=['projects/' + project.id, 'wiki'],
                 title = page_title,
-                event_class = [],
+                event_class = [['page_edited', actorid]],
                 user = creatorid,
                 date = datetime_to_string(datetime.now())), uri)
 
@@ -121,7 +121,7 @@ class CabochonUtility(object):
                 context = project.absolute_url(),
                 categories=['projects/' + project.id, 'wiki'],
                 title = page_title,
-                event_class = [],
+                event_class = [['page_edited', actorid]],
                 user = actorid,
                 date = datetime_to_string(datetime.now())), uri)
 
