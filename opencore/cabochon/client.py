@@ -98,7 +98,7 @@ class CabochonUtility(object):
         uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
         self.cabochon_client.send_message(dict(
                 url = page_url,
-                context = project.absolute_url(),
+                context = project.absolute_url() + "/security-context",
                 categories=['projects/' + project.id, 'wiki'],
                 title = page_title,
                 event_class = [['page_edited', creatorid]],
@@ -118,7 +118,7 @@ class CabochonUtility(object):
         uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
         self.cabochon_client.send_message(dict(
                 url = page_url,
-                context = project.absolute_url(),
+                context = project.absolute_url() + "/security-context",
                 categories=['projects/' + project.id, 'wiki'],
                 title = page_title,
                 event_class = [['page_edited', actorid]],
