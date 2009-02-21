@@ -83,6 +83,34 @@ class CabochonUtility(object):
             raise CabochonConfigError('invalid empty cabochon uri or cabochon uri not set')
         return cabochon_uri
 
+    def send_feed_item(self, id, obtype, action, title, updated, author,
+                       **kwargs):
+        """Sends feed item data intended for the feed store.
+
+        If kwargs contains any of the following keys, the key / value
+        pair will be passed along in the event message.  Unrecognized
+        keys will be ignored.
+        """
+        msg_data = dict(title=title, updated=updated, author=author,
+                        object_type=obtype, action=action)
+        addl_msg_data_keys = ('categories',
+                              'summary',
+                              'content',
+                              'link',
+                              'published', # datetime
+                              'rights',
+                              'project',
+                              'closed', # 0 or 1 as boolean values
+                         )
+        for key in addl_msg_data_keys:
+            value = kwargs.get(key)
+            if value is not None:
+                msg_data[key] = value
+
+        event_name = 'send_feed_item'
+        uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
+        self.cabochon_client.send_message(msg_data, uri)
+
     def notify_project_created(self, id, creatorid):
         event_name = 'create_project'
         uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
@@ -116,6 +144,7 @@ class CabochonUtility(object):
     def notify_wikipage_updated(self, project, page_title, page_url, actorid):
         event_name = 'edit_page'
         uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
+        now = datetime_to_string(datetime.now())
         self.cabochon_client.send_message(dict(
                 url = page_url,
                 context = project.absolute_url() + "/security-context",
@@ -123,7 +152,5 @@ class CabochonUtility(object):
                 title = page_title,
                 event_class = [['page_edited', actorid]],
                 user = actorid,
-                date = datetime_to_string(datetime.now())), uri)
-
-
-
+                date = now,
+                ), uri)
