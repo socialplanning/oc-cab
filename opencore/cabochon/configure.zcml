@@ -29,4 +29,16 @@
           zope.app.event.interfaces.IObjectModifiedEvent"
      />
 
+  <subscriber
+     handler=".subscribers.join_project_notifier"
+     for="opencore.interfaces.membership.IOpenMembership
+          opencore.interfaces.event.IJoinedProjectEvent"
+     />
+
+  <subscriber
+     handler=".subscribers.listen_message_notifier"
+     for="Products.listen.interfaces.mail_message.IMailMessage
+          zope.app.event.objectevent.ObjectModifiedEvent"
+     />
+
 </configure>

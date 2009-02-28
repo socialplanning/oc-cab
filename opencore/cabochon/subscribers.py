@@ -1,9 +1,14 @@
+from Products.CMFCore.utils import getToolByName
+from Products.listen.interfaces import IMailingList
+from Products.listen.interfaces import IMemberLookup
 from cabochonclient import datetime_to_string
 from datetime import datetime
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.interfaces import IOpenPage, IProject
+from opencore.member.utils import member_path
 from opencore.project.browser.projectinfo import ProjectInfo
-from Products.CMFCore.utils import getToolByName
+from opencore.utils import interface_in_aq_chain
+from rfc822 import parseaddr
 from zope.app.container.contained import IObjectRemovedEvent
 from zope.app.container.contained import IObjectAddedEvent
 from zope.component import adapter
@@ -21,6 +26,8 @@ def once_per_request(subscriber_fn):
         return subscriber_fn(obj, event)
     return inner
         
+def get_wf_state(ob, wf_id):
+    return ob.workflow_history[wf_id][-1]['review_state']
 
 @once_per_request
 def wikipage_notifier(page, event=None):
@@ -45,11 +52,8 @@ def wikipage_notifier(page, event=None):
         feed_kwargs['project'] = proj_id
         categories.append('projects/%s' % proj_id)
         summary += " (in project '%s')" % project.title_or_id()
-        wfp = project._getOb('.wf_policy_config', None)
-        if wfp is not None:
-            policy = wfp.getPolicyIn().getId()
-            if policy.startswith('closed'):
-                closed = 1
+        state = get_wf_state(project, 'openplans_teamspace_workflow')
+        closed = int(state == 'closed')
 
     feed_kwargs['summary'] = summary
     feed_kwargs['closed'] = closed
@@ -96,3 +100,65 @@ def notify_project_deleted(project, event=None):
 
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.notify_project_deleted(id)
+
+
+def join_project_notifier(mship, event=None):
+    team = mship.getTeam()
+    username = mship.getId()
+    mem_path = member_path(username)
+    portal_url = getToolByName(mship, 'portal_url')()
+    url = '/'.join((portal_url, mem_path))
+    memtitle = mship.title_or_id()
+    projtitle = team.title_or_id()
+    title = '%s joined project %s' % (memtitle, projtitle)
+    summary = title
+    updated = datetime_to_string(datetime.now())
+    object_type = 'membership'
+    action = 'joined'
+    team_state = get_wf_state(team, 'openplans_team_workflow')
+    closed = int(team_state=='closed')
+    categories = ['project', 'membership']
+    feed_kwargs = dict(link=url)
+    proj_id = team.getId()
+    feed_kwargs['project'] = proj_id
+    feed_kwargs['summary'] = summary
+    feed_kwargs['closed'] = closed
+    feed_kwargs['categories'] = categories
+
+    cabochon_utility = getUtility(ICabochonClient)
+    cabochon_utility.send_feed_item(username, object_type, action, title,
+                                    updated, username, **feed_kwargs)
+
+
+def listen_message_notifier(msg, event=None):
+    project = ProjectInfo(msg).project
+    email = parseaddr(msg.from_addr)[1]
+    memlookup = getUtility(IMemberLookup)
+    username = memlookup.to_memberid(email)
+    if username is None:
+        memtitle = username = email
+    else:
+        mtool = getToolByName(msg, 'portal_membership')
+        memtitle = mtool.getMemberById(username).getProperty('fullname')
+    url = msg.absolute_url()
+    title = msg.subject.encode('utf8')
+    mlist = interface_in_aq_chain(msg, IMailingList)
+    summary = "%s sent discussion message to '%s' forum" % (memtitle,
+                                                            mlist.Title())
+    updated = datetime_to_string(datetime.now())
+    object_type = 'discussion message'
+    action = 'sent'
+    proj_state = get_wf_state(project, 'openplans_teamspace_workflow')
+    closed = int(proj_state=='closed')
+    proj_id = project.getId()
+    categories = ['discussion', 'message', 'projects/%s' % proj_id]
+    feed_kwargs = dict(link=url)
+    feed_kwargs['project'] = proj_id
+    feed_kwargs['summary'] = summary
+    feed_kwargs['closed'] = closed
+    feed_kwargs['categories'] = categories
+
+    cabochon_utility = getUtility(ICabochonClient)
+    cabochon_utility.send_feed_item(username, object_type, action, title,
+                                    updated, username, **feed_kwargs)
+    
