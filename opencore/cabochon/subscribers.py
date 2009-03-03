@@ -65,7 +65,7 @@ def wikipage_notifier(page, event=None):
 
     # BBB older-style notifiers, these really need to go away,
     # requires refactoring listeners that expect these events to be
-    # fired.  i _think_ this is only 
+    # fired.  i _think_ this is only twirlip
     if action == 'created':
         parent = event.newParent
         cabochon_utility.notify_wikipage_created(parent, title, url, username)
