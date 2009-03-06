@@ -35,7 +35,6 @@ def wikipage_notifier(page, event=None):
     url = page.absolute_url()
     mtool = getToolByName(page, 'portal_membership')
     member = mtool.getAuthenticatedMember()
-    username = member.getId()
     title = page.title_or_id()
     updated = datetime_to_string(datetime.now())
     object_type = 'page'
@@ -61,11 +60,12 @@ def wikipage_notifier(page, event=None):
 
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(page.getId(), object_type, action, title,
-                                    updated, username, **feed_kwargs)
+                                    updated, member, **feed_kwargs)
 
     # BBB older-style notifiers, these really need to go away,
     # requires refactoring listeners that expect these events to be
     # fired.  i _think_ this is only twirlip
+    username = member.getId()
     if action == 'created':
         parent = event.newParent
         cabochon_utility.notify_wikipage_created(parent, title, url, username)
