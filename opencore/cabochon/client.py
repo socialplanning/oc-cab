@@ -84,18 +84,17 @@ class CabochonUtility(object):
             raise CabochonConfigError('invalid empty cabochon uri or cabochon uri not set')
         return cabochon_uri
 
-    def send_feed_item(self, id, obtype, action, title, updated, member,
+    def send_feed_item(self, id, obtype, action, title, updated, author_map,
                        **kwargs):
         """Sends feed item data intended for the feed store.
 
         If kwargs contains any of the following keys, the key / value
         pair will be passed along in the event message.  Unrecognized
         keys will be ignored.
+
+        'author_map' should be a dictionary containing at least one of
+        'name', 'uri', and 'email' as keys.
         """
-        mtool = getToolByName(member, 'portal_membership')
-        author_map = {'name': member.getProperty('fullname'),
-                      'uri': mtool.getHomeUrl(member.getId()),
-                      'email': member.getProperty('email')}
         msg_data = dict(title=title, updated=updated, author=author_map,
                         object_type=obtype, action=action)
         addl_msg_data_keys = ('categories',

@@ -29,12 +29,20 @@ def once_per_request(subscriber_fn):
 def get_wf_state(ob, wf_id):
     return ob.workflow_history[wf_id][-1]['review_state']
 
+def author_map_from_member(member):
+    mtool = getToolByName(member, 'portal_membership')
+    name = member.getProperty('fullname')
+    uri = mtool.getHomeUrl(member.getId())
+    email = member.getProperty('email')
+    return {'name': name, 'uri': uri, 'email': email}
+
 @once_per_request
 def wikipage_notifier(page, event=None):
     project = ProjectInfo(page).project
     url = page.absolute_url()
     mtool = getToolByName(page, 'portal_membership')
     member = mtool.getAuthenticatedMember()
+    author_map = author_map_from_member(member)
     title = page.title_or_id()
     updated = datetime_to_string(datetime.now())
     object_type = 'page'
@@ -60,7 +68,7 @@ def wikipage_notifier(page, event=None):
 
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(page.getId(), object_type, action, title,
-                                    updated, member, **feed_kwargs)
+                                    updated, author_map, **feed_kwargs)
 
     # BBB older-style notifiers, these really need to go away,
     # requires refactoring listeners that expect these events to be
@@ -105,10 +113,11 @@ def notify_project_deleted(project, event=None):
 def join_project_notifier(mship, event=None):
     team = mship.getTeam()
     username = mship.getId()
-    mem_path = member_path(username)
-    portal_url = getToolByName(mship, 'portal_url')()
-    url = '/'.join((portal_url, mem_path))
-    memtitle = mship.title_or_id()
+    mtool = getToolByName(mship, 'portal_membership')
+    url = mtool.getHomeUrl(username)
+    member = mship.getMember()
+    author_map = author_map_from_member(member)
+    memtitle = member.title_or_id()
     projtitle = team.title_or_id()
     title = '%s joined project %s' % (memtitle, projtitle)
     summary = title
@@ -127,7 +136,7 @@ def join_project_notifier(mship, event=None):
 
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(username, object_type, action, title,
-                                    updated, username, **feed_kwargs)
+                                    updated, author_map, **feed_kwargs)
 
 
 def listen_message_notifier(msg, event=None):
@@ -135,15 +144,19 @@ def listen_message_notifier(msg, event=None):
     email = parseaddr(msg.from_addr)[1]
     memlookup = getUtility(IMemberLookup)
     username = memlookup.to_memberid(email)
+    author_map = {}
     if username is None:
-        memtitle = username = email
+        author_map['email'] = email.decode('utf8')
+        author_map['name'] = email.split('@')[0] + '@'
+        author_map['name'] = author_map['name'].decode('utf8')
     else:
         mtool = getToolByName(msg, 'portal_membership')
-        memtitle = mtool.getMemberById(username).getProperty('fullname')
+        member = mtool.getMemberById(username)
+        author_map = author_map_from_member(member)
     url = msg.absolute_url()
     title = msg.subject.encode('utf8')
     mlist = interface_in_aq_chain(msg, IMailingList)
-    summary = "%s sent discussion message to '%s' forum" % (memtitle,
+    summary = "%s sent discussion message to '%s' forum" % (author_map['name'],
                                                             mlist.Title())
     updated = datetime_to_string(datetime.now())
     object_type = 'discussion message'
@@ -160,5 +173,4 @@ def listen_message_notifier(msg, event=None):
 
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(username, object_type, action, title,
-                                    updated, username, **feed_kwargs)
-    
+                                    updated, author_map, **feed_kwargs)
