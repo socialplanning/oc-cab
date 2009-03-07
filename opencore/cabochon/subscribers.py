@@ -119,8 +119,7 @@ def join_project_notifier(mship, event=None):
     author_map = author_map_from_member(member)
     memtitle = member.title_or_id()
     projtitle = team.title_or_id()
-    title = '%s joined project %s' % (memtitle, projtitle)
-    summary = title
+    summary = '%s joined project %s' % (memtitle, projtitle)
     updated = datetime_to_string(datetime.now())
     object_type = 'membership'
     action = 'joined'
@@ -135,7 +134,7 @@ def join_project_notifier(mship, event=None):
     feed_kwargs['categories'] = categories
 
     cabochon_utility = getUtility(ICabochonClient)
-    cabochon_utility.send_feed_item(username, object_type, action, title,
+    cabochon_utility.send_feed_item(username, object_type, action, projtitle,
                                     updated, author_map, **feed_kwargs)
 
 
