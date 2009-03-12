@@ -6,7 +6,7 @@ from opencore.utility.interfaces import IProvideSiteConfig
 from threading import Thread, Lock
 from zope.interface import implements
 from zope.component import getUtility
-from Products.CMFCore.utils import getToolByName
+
 
 class CabochonConfigError(Exception):
     """Error in cabochon configuration"""
