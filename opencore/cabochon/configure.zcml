@@ -30,9 +30,15 @@
      />
 
   <subscriber
-     handler=".subscribers.join_project_notifier"
+     handler=".subscribers.project_mship_notifier"
      for="opencore.interfaces.membership.IOpenMembership
           opencore.interfaces.event.IJoinedProjectEvent"
+     />
+
+  <subscriber
+     handler=".subscribers.project_mship_notifier"
+     for="opencore.interfaces.membership.IOpenMembership
+          opencore.interfaces.event.ILeftProjectEvent"
      />
 
   <subscriber

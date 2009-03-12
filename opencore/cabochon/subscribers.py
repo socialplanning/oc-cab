@@ -5,7 +5,7 @@ from cabochonclient import datetime_to_string
 from datetime import datetime
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.interfaces import IOpenPage, IProject
-from opencore.member.utils import member_path
+from opencore.interfaces.event import ILeftProjectEvent
 from opencore.project.browser.projectinfo import ProjectInfo
 from opencore.utils import interface_in_aq_chain
 from rfc822 import parseaddr
@@ -16,13 +16,29 @@ from zope.component import getUtility
 
 
 def once_per_request(subscriber_fn):
+    """
+    Actually once per request per individual object.
+    """
     def inner(obj, event=None):
         # sucks to use acquisition here, but we don't have a
         # get_request function yet
-        request = obj.REQUEST
-        if getattr(request, '_cab_already_notified', False):
+        ftool = getToolByName(obj, 'portal_factory')
+        if ftool.isTemporary(obj):
+            # we never want to fire events if we're still in the
+            # factory tool
             return
-        request._cab_already_notified = True
+        request = obj.REQUEST
+        attrname = '_cab_already_notified'
+        fired_map = getattr(request, attrname, {})
+        ob_path = '/'.join(obj.getPhysicalPath())
+        event_id = None
+        if event is not None:
+            event_id = event.__class__.__name__
+        fired_key = (ob_path, event_id)
+        if fired_key in fired_map:
+            return
+        fired_map[fired_key] = None
+        setattr(request, attrname, fired_map)
         return subscriber_fn(obj, event)
     return inner
         
@@ -31,7 +47,7 @@ def get_wf_state(ob, wf_id):
 
 def author_map_from_member(member):
     mtool = getToolByName(member, 'portal_membership')
-    name = member.getProperty('fullname')
+    name = member.getProperty('fullname') or member.getId()
     uri = mtool.getHomeUrl(member.getId())
     email = member.getProperty('email')
     return {'name': name, 'uri': uri, 'email': email}
@@ -45,6 +61,7 @@ def wikipage_notifier(page, event=None):
     author_map = author_map_from_member(member)
     title = page.title_or_id()
     updated = datetime_to_string(datetime.now())
+    # XXX i18n.. bigger feedbacker issue, need to pass msgids into feedbacker?
     object_type = 'page'
     action = 'modified'
     if IObjectAddedEvent.providedBy(event):
@@ -110,7 +127,7 @@ def notify_project_deleted(project, event=None):
     cabochon_utility.notify_project_deleted(id)
 
 
-def join_project_notifier(mship, event=None):
+def project_mship_notifier(mship, event=None):
     team = mship.getTeam()
     username = mship.getId()
     mtool = getToolByName(mship, 'portal_membership')
@@ -119,10 +136,13 @@ def join_project_notifier(mship, event=None):
     author_map = author_map_from_member(member)
     memtitle = member.title_or_id()
     projtitle = team.title_or_id()
-    summary = '%s joined project %s' % (memtitle, projtitle)
+    # XXX i18n.. bigger feedbacker issue, need to pass msgids into feedbacker?
+    action = 'joined'
+    if ILeftProjectEvent.providedBy(event):
+        action = 'left'
+    summary = '%s %s project %s' % (memtitle, action, projtitle)
     updated = datetime_to_string(datetime.now())
     object_type = 'membership'
-    action = 'joined'
     team_state = get_wf_state(team, 'openplans_team_workflow')
     closed = int(team_state=='closed')
     categories = ['project', 'membership']
@@ -155,6 +175,7 @@ def listen_message_notifier(msg, event=None):
     url = msg.absolute_url()
     title = msg.subject.encode('utf8')
     mlist = interface_in_aq_chain(msg, IMailingList)
+    # XXX i18n.. bigger feedbacker issue, need to pass msgids into feedbacker?
     summary = "%s sent discussion message to '%s' forum" % (author_map['name'],
                                                             mlist.Title())
     updated = datetime_to_string(datetime.now())
