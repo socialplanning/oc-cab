@@ -105,6 +105,7 @@ class CabochonUtility(object):
                               'rights',
                               'project',
                               'closed', # 0 or 1 as boolean values
+                              'area',
                          )
         for key in addl_msg_data_keys:
             value = kwargs.get(key)

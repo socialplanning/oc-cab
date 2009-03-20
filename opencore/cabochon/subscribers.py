@@ -3,8 +3,10 @@ from Products.listen.interfaces import IMailingList
 from Products.listen.interfaces import IMemberLookup
 from cabochonclient import datetime_to_string
 from datetime import datetime
+from opencore.browser.base import IWikiContainer
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.interfaces import IOpenPage, IProject
+from opencore.interfaces.adding import IAmAPeopleFolder
 from opencore.interfaces.event import ILeftProjectEvent
 from opencore.project.browser.projectinfo import ProjectInfo
 from opencore.utils import interface_in_aq_chain
@@ -72,12 +74,21 @@ def wikipage_notifier(page, event=None):
 
     feed_kwargs = dict(link=url)
     if project is not None:
+        feed_kwargs['area'] = 'projects'
         proj_id = project.getId()
         feed_kwargs['project'] = proj_id
         categories.append('projects/%s' % proj_id)
         summary += " (in project '%s')" % project.title_or_id()
         state = get_wf_state(project, 'openplans_teamspace_workflow')
         closed = int(state == 'closed')
+
+    if IWikiContainer is not None:
+       wiki_container = interface_in_aq_chain(page, IWikiContainer)
+       if wiki_container is not None:
+           feed_kwargs['area'] = wiki_container.getId()
+
+    if interface_in_aq_chain(page, IAmAPeopleFolder) is not None:
+        feed_kwargs['area'] = 'people'
 
     feed_kwargs['summary'] = summary
     feed_kwargs['closed'] = closed
@@ -148,6 +159,7 @@ def project_mship_notifier(mship, event=None):
     categories = ['project', 'membership']
     feed_kwargs = dict(link=url)
     proj_id = team.getId()
+    feed_kwargs['area'] = 'projects'
     feed_kwargs['project'] = proj_id
     feed_kwargs['summary'] = summary
     feed_kwargs['closed'] = closed
@@ -186,6 +198,7 @@ def listen_message_notifier(msg, event=None):
     proj_id = project.getId()
     categories = ['discussion', 'message', 'projects/%s' % proj_id]
     feed_kwargs = dict(link=url)
+    feed_kwargs['area'] = 'projects'
     feed_kwargs['project'] = proj_id
     feed_kwargs['summary'] = summary
     feed_kwargs['closed'] = closed
