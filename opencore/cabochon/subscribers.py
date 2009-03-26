@@ -170,6 +170,7 @@ def project_mship_notifier(mship, event=None):
                                     updated, author_map, **feed_kwargs)
 
 
+@once_per_request
 def listen_message_notifier(msg, event=None):
     project = ProjectInfo(msg).project
     email = parseaddr(msg.from_addr)[1]
