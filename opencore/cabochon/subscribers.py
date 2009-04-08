@@ -28,19 +28,24 @@ def ignore_container_modified(subscriber_fn):
         return subscriber_fn(obj, event)
     return inner
 
+
 def once_per_request(subscriber_fn):
     """
-    Actually once per request per individual object.
+    Actually once per request per individual object and event type.
     """
     def inner(obj, event=None):
-        # sucks to use acquisition here, but we don't have a
-        # get_request function yet
         ftool = getToolByName(obj, 'portal_factory')
         if ftool.isTemporary(obj):
             # we never want to fire events if we're still in the
             # factory tool
             return
+        # sucks to use acquisition here, but we don't have a
+        # get_request function yet
         request = obj.REQUEST
+        # skip if this is a project add request
+        if getattr(request, '_cab_project_add', False):
+            return
+        # check if this event / object pair has already happened
         attrname = '_cab_already_notified'
         fired_map = getattr(request, attrname, {})
         ob_path = '/'.join(obj.getPhysicalPath())
@@ -50,13 +55,18 @@ def once_per_request(subscriber_fn):
         fired_key = (ob_path, event_id)
         if fired_key in fired_map:
             return
+        # prevent page edits from firing during page creation
+        if ((ob_path, 'ObjectAddedEvent') in fired_map):
+            return
         fired_map[fired_key] = None
         setattr(request, attrname, fired_map)
         return subscriber_fn(obj, event)
     return inner
-        
+
+
 def get_wf_state(ob, wf_id):
     return ob.workflow_history[wf_id][-1]['review_state']
+
 
 def author_map_from_member(member):
     mtool = getToolByName(member, 'portal_membership')
@@ -64,6 +74,7 @@ def author_map_from_member(member):
     uri = mtool.getHomeUrl(member.getId())
     email = member.getProperty('email')
     return {'name': name, 'uri': uri, 'email': email}
+
 
 @ignore_container_modified
 @once_per_request
@@ -79,6 +90,7 @@ def wikipage_notifier(page, event=None):
     object_type = 'page'
     action = 'modified'
     if IObjectAddedEvent.providedBy(event):
+        title = page.REQUEST.form.get('title') or title
         action = 'created'
     closed = 0
     categories = ['wiki']
@@ -110,7 +122,7 @@ def wikipage_notifier(page, event=None):
     cabochon_utility.send_feed_item(page.getId(), object_type, action, title,
                                     updated, author_map, **feed_kwargs)
 
-    # BBB older-style notifiers, these really need to go away,
+    # bbb older-style notifiers, these really need to go away,
     # requires refactoring listeners that expect these events to be
     # fired.  i _think_ this is only twirlip
     username = member.getId()
@@ -221,3 +233,42 @@ def listen_message_notifier(msg, event=None):
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(username, object_type, action, title,
                                     updated, author_map, **feed_kwargs)
+
+
+@once_per_request
+def project_added_notifier(project, event=None):
+    request = project.REQUEST
+    url = project.absolute_url()
+    mtool = getToolByName(project, 'portal_membership')
+    member = mtool.getAuthenticatedMember()
+    author_map = author_map_from_member(member)
+    # moral equivalent of project.title_or_id()
+    title = request.form.get('project_title') or event.newName
+    if type(title) == unicode:
+        title = title.encode('utf8')
+    updated = datetime_to_string(datetime.now())
+    # XXX i18n.. bigger feedbacker issue, need to pass msgids into feedbacker?
+    object_type = 'project'
+    action = 'created'
+    closed = 0
+    categories = ['project']
+    summary = "Project %s: '%s'" % (action, title)
+
+    feed_kwargs = dict(link=url)
+    feed_kwargs['area'] = 'projects'
+    proj_id = project.getId()
+    feed_kwargs['project'] = proj_id
+    categories.append('projects/%s' % proj_id)
+    closed = int('closed' in request.form.get('workflow_policy', ''))
+
+    feed_kwargs['summary'] = summary
+    feed_kwargs['closed'] = closed
+    feed_kwargs['categories'] = categories
+
+    cabochon_utility = getUtility(ICabochonClient)
+    cabochon_utility.send_feed_item(proj_id, object_type, action, title,
+                                    updated, author_map, **feed_kwargs)
+
+    # mark the request to prevent some of the other events from sending
+    # any messages to feedbacker
+    request._cab_project_add = True

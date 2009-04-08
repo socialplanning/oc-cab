@@ -47,4 +47,10 @@
           zope.app.event.objectevent.ObjectModifiedEvent"
      />
 
+  <subscriber
+     handler=".subscribers.project_added_notifier"
+     for="opencore.interfaces.IProject
+          zope.app.container.contained.IObjectAddedEvent"
+     />
+
 </configure>
