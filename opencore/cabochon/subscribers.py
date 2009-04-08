@@ -13,9 +13,20 @@ from opencore.utils import interface_in_aq_chain
 from rfc822 import parseaddr
 from zope.app.container.contained import IObjectRemovedEvent
 from zope.app.container.contained import IObjectAddedEvent
+from zope.app.container.contained import IContainerModifiedEvent
 from zope.component import adapter
 from zope.component import getUtility
 
+
+def ignore_container_modified(subscriber_fn):
+    """
+    We only care about object modification, not subobject adds.
+    """
+    def inner(obj, event=None):
+        if IContainerModifiedEvent.providedBy(event):
+            return
+        return subscriber_fn(obj, event)
+    return inner
 
 def once_per_request(subscriber_fn):
     """
@@ -170,6 +181,7 @@ def project_mship_notifier(mship, event=None):
                                     updated, author_map, **feed_kwargs)
 
 
+@ignore_container_modified
 @once_per_request
 def listen_message_notifier(msg, event=None):
     project = ProjectInfo(msg).project
