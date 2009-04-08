@@ -65,6 +65,7 @@ def author_map_from_member(member):
     email = member.getProperty('email')
     return {'name': name, 'uri': uri, 'email': email}
 
+@ignore_container_modified
 @once_per_request
 def wikipage_notifier(page, event=None):
     project = ProjectInfo(page).project
