@@ -1,6 +1,7 @@
 from Products.CMFCore.utils import getToolByName
 from Products.listen.interfaces import IMailingList
 from Products.listen.interfaces import IMemberLookup
+from Acquisition import aq_inner
 from cabochonclient import datetime_to_string
 from datetime import datetime
 from opencore.browser.base import IWikiContainer
@@ -42,8 +43,8 @@ def once_per_request(subscriber_fn):
         # sucks to use acquisition here, but we don't have a
         # get_request function yet
         request = obj.REQUEST
-        # skip if this is a project add request
-        if getattr(request, '_cab_project_add', False):
+        # skip if further cab notifiers have been blocked
+        if getattr(request, '_cab_prevent_further', False):
             return
         # check if this event / object pair has already happened
         attrname = '_cab_already_notified'
@@ -106,13 +107,18 @@ def wikipage_notifier(page, event=None):
         state = get_wf_state(project, 'openplans_teamspace_workflow')
         closed = int(state == 'closed')
 
+    if interface_in_aq_chain(page, IAmAPeopleFolder) is not None:
+        # XXX... bit of a hack to prevent creation of a person's home
+        # page from generating a feedbacker entry
+        if (action == 'created' and
+            page.getId() == '%s-home' % member.getId()):
+            return
+        feed_kwargs['area'] = 'people'
+
     if IWikiContainer is not None:
        wiki_container = interface_in_aq_chain(page, IWikiContainer)
        if wiki_container is not None:
            feed_kwargs['area'] = wiki_container.getId()
-
-    if interface_in_aq_chain(page, IAmAPeopleFolder) is not None:
-        feed_kwargs['area'] = 'people'
 
     feed_kwargs['summary'] = summary
     feed_kwargs['closed'] = closed
@@ -268,7 +274,32 @@ def project_added_notifier(project, event=None):
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(proj_id, object_type, action, title,
                                     updated, author_map, **feed_kwargs)
-
     # mark the request to prevent some of the other events from sending
     # any messages to feedbacker
-    request._cab_project_add = True
+    request._cab_prevent_further = True
+
+
+def member_registered_notifier(event=None):
+    member = aq_inner(event.member)
+    username = member.getId()
+    author_map = author_map_from_member(member)
+    # mem folder not created yet, construct URL of where it will be
+    mtool = getToolByName(member, 'portal_membership')
+    url = '%s/%s' % (mtool.getMembersFolder().absolute_url(), username)
+    # and fix up the author map uri
+    author_map['uri'] = url
+    memtitle = member.title_or_id()
+    # XXX i18n.. bigger feedbacker issue, need to pass msgids into feedbacker?
+    action = 'joined'
+    portal = getToolByName(member, 'portal_url').getPortalObject()
+    summary = '%s %s %s' % (memtitle, action, portal.Title())
+    updated = datetime_to_string(datetime.now())
+    object_type = 'member'
+    categories = ['member']
+    feed_kwargs = dict(link=url)
+    feed_kwargs['summary'] = summary
+    feed_kwargs['categories'] = categories
+
+    cabochon_utility = getUtility(ICabochonClient)
+    cabochon_utility.send_feed_item(username, object_type, action, memtitle,
+                                    updated, author_map, **feed_kwargs)

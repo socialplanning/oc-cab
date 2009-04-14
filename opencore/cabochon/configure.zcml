@@ -2,8 +2,8 @@
 
   <utility
      factory="opencore.cabochon.client.CabochonUtility"
-	   provides="opencore.cabochon.interfaces.ICabochonClient"
-	   />
+     provides="opencore.cabochon.interfaces.ICabochonClient"
+     />
 
   <subscriber
      handler=".subscribers.notify_project_deleted"
@@ -51,6 +51,11 @@
      handler=".subscribers.project_added_notifier"
      for="opencore.interfaces.IProject
           zope.app.container.contained.IObjectAddedEvent"
+     />
+
+  <subscriber
+     handler=".subscribers.member_registered_notifier"
+     for="opencore.interfaces.event.IMemberRegisteredEvent"
      />
 
 </configure>
