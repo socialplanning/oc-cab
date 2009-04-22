@@ -58,4 +58,9 @@
      for="opencore.interfaces.event.IMemberRegisteredEvent"
      />
 
+  <subscriber
+     handler=".subscribers.portrait_modified_notifier"
+     for="opencore.interfaces.event.IPortraitModifiedEvent"
+     />
+
 </configure>

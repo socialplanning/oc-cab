@@ -279,7 +279,7 @@ def project_added_notifier(project, event=None):
     request._cab_prevent_further = True
 
 
-def member_registered_notifier(event=None):
+def member_registered_notifier(event):
     member = aq_inner(event.member)
     username = member.getId()
     author_map = author_map_from_member(member)
@@ -303,3 +303,29 @@ def member_registered_notifier(event=None):
     cabochon_utility = getUtility(ICabochonClient)
     cabochon_utility.send_feed_item(username, object_type, action, memtitle,
                                     updated, author_map, **feed_kwargs)
+
+
+@once_per_request
+def real_portrait_modified_notifier(member, event=None):
+    member = aq_inner(member)
+    request = member.REQUEST
+    author_map = author_map_from_member(member)
+    memtitle = member.title_or_id()
+    title = '%s portrait' % memtitle
+    action = 'modified'
+    object_type = 'avatar'
+    updated = datetime_to_string(datetime.now())
+    feed_kwargs = dict(link=author_map.get('uri'))
+    feed_kwargs['summary'] = '%s %s %s' % (memtitle, action, object_type)
+    feed_kwargs['categories'] = ['member', 'avatar']
+    cabochon_utility = getUtility(ICabochonClient)
+    cabochon_utility.send_feed_item(member.getId(), object_type, action,
+                                    title, updated, author_map, **feed_kwargs)
+
+
+def portrait_modified_notifier(event):
+    """This just delegates to the real notifer; this indirection is in
+    place so the once_per_request decorator can be used even though
+    PortraitModifiedEvent is not a true object event (i.e. the event
+    subscriber arguments don't match)."""
+    return real_portrait_modified_notifier(event.member, event)
