@@ -114,7 +114,15 @@ class CabochonUtility(object):
 
         event_name = 'send_feed_item'
         uri = '%s/event/fire_by_name/%s' % (self.cabochon_uri, event_name)
-        self.cabochon_client.send_message(msg_data, uri, ensure_ascii=False)
+        try:
+            self.cabochon_client.send_message(msg_data, uri, ensure_ascii=False)
+        except UnicodeDecodeError:
+            for k, v in msg_data.items():
+                if type(v) is unicode:
+                    # brute force :P
+                    v = v.encode('utf8')
+                    msg_data[k] = v
+            self.cabochon_client.send_message(msg_data, uri, ensure_ascii=False)
 
     def notify_project_created(self, id, creatorid):
         event_name = 'create_project'
