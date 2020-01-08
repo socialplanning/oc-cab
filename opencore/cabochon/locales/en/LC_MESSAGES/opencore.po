@@ -1,0 +1,33 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: opencore\n"
+"POT-Creation-Date: 2020-01-08 02:28+0000\n"
+"PO-Revision-Date: 2008-10-08 15:57-0400\n"
+"Last-Translator: \n"
+"Language-Team: The Open Planning Project <opencore-dev@lists.openplans.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"Language-Code: en\n"
+"Language-Name: English\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: opencore\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: UNITED STATES\n"
+
+#: ../client.py:34
+msgid "bad cabochon_user_info file specified in zope.conf opencore.nui"
+msgstr ""
+
+#: ../client.py:84
+msgid "invalid empty cabochon uri or cabochon uri not set"
+msgstr ""
+
+#: ../client.py:40
+msgid "no cabochon_messages directory specified in zope.conf opencore.nui"
+msgstr ""
+
+#: ../client.py:27
+msgid "no cabochon_user_info file specified in zope.conf opencore.nui"
+msgstr ""

@@ -2,6 +2,7 @@ from cabochonclient import CabochonClient, datetime_to_string
 from datetime import datetime
 from opencore.cabochon.interfaces import ICabochonClient
 from opencore.configuration.utils import product_config
+from opencore.i18n import _
 from opencore.utility.interfaces import IProvideSiteConfig
 from threading import Thread, Lock
 from zope.interface import implements
@@ -23,20 +24,20 @@ class CabochonUtility(object):
         cabochon_user_info_file = product_config('cabochon_user_info',
                                                  'opencore.nui')
         if not cabochon_user_info_file:
-            raise CabochonConfigError('no cabochon_user_info file specified in zope.conf opencore.nui')
+            raise CabochonConfigError(_(u"no cabochon_user_info file specified in zope.conf opencore.nui"))
 
         try:
             f = open(cabochon_user_info_file)
             username, password = f.read().strip().split(':', 1)
             f.close()
         except IOError:
-            raise CabochonConfigError('bad cabochon_user_info file specified in zope.conf opencore.nui')
+            raise CabochonConfigError(_(u"bad cabochon_user_info file specified in zope.conf opencore.nui"))
 
         # get cabochon_messages filesystem location from configuration
         cabochon_messages_dir = product_config('cabochon_messages',
                                                'opencore.nui')
         if not cabochon_messages_dir:
-            raise CabochonConfigError('no cabochon_messages directory specified in zope.conf opencore.nui')
+            raise CabochonConfigError(_(u"no cabochon_messages directory specified in zope.conf opencore.nui"))
 
         # Stash config settings for later.
         self.cabochon_messages_dir = cabochon_messages_dir
@@ -80,7 +81,7 @@ class CabochonUtility(object):
         cabochon_uri = getUtility(IProvideSiteConfig).get('cabochon uri')
         cabochon_uri = cabochon_uri.strip()
         if not cabochon_uri:
-            raise CabochonConfigError('invalid empty cabochon uri or cabochon uri not set')
+            raise CabochonConfigError(_(u"invalid empty cabochon uri or cabochon uri not set"))
         return cabochon_uri
 
     def notify_project_created(self, id, creatorid):
