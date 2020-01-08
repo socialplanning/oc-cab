@@ -7,7 +7,7 @@ setup(name='oc-cab',
       description="opencore cabochon client package",
       long_description="""\
 """,
-      # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
+      # Get more strings from https://pypi.org/pypi?:action=list_classifiers
       classifiers=[
         "Framework :: Plone",
         "Framework :: Zope2",
@@ -15,7 +15,7 @@ setup(name='oc-cab',
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
-      keywords='',
+      keywords='opencore cabochon client',
       author='The Open Planning Project',
       author_email='',
       url='',
@@ -25,7 +25,7 @@ setup(name='oc-cab',
       include_package_data=True,
       zip_safe=False,
       dependency_links=[
-          'https://svn.openplans.org/svn/CabochonClient/trunk#egg=cabochonclient-dev',
+          'http://github.com/socialplanning/CabochonClient/tarball/master#egg=cabochonclient-dev',
       ],
       install_requires=[
           'setuptools',
