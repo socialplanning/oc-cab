@@ -3,7 +3,7 @@ opencore.cabochon
 =================
 
 
-The Cabochon client package for OpenCore Software (http://coactivate.org/projects/opencore).
+The `Cabochon <https://www.coactivate.org/projects/cabochon/>`_ client package for `OpenCore Software <http://coactivate.org/projects/opencore/>`_.
 
 
 Features
